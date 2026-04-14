@@ -1,6 +1,6 @@
 # MCPForge — Build, test, and deploy Model Context Protocol servers in minutes. Scaffolding, hot-reload dev server, and registry ublishing for the MCP ecosystem
 
-Build, test, and deploy Model Context Protocol servers in minutes. Scaffolding, hot-reload dev server, and registry ublishing for the MCP ecosystem. MCPForge gives you a focused, inspectable implementation of that idea.
+Build, test, and deploy Model Context Protocol servers in minutes. Scaffolding, hot-reload dev server, and registry ublishing for the MCP ecosystem.
 
 ## Why MCPForge
 
