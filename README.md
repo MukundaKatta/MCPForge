@@ -1,72 +1,95 @@
 # MCPForge
 
-MCPForge is an early-stage toolkit for scaffolding, testing, and shipping Model Context Protocol servers faster.
+MCPForge is a lightweight toolkit for scaffolding and validating Model Context Protocol servers locally.
 
-Model Context Protocol is becoming an important part of modern AI tooling, but the developer workflow around MCP servers is still repetitive. Teams often rebuild the same project structure, validation flow, local testing loop, and deployment glue from scratch. MCPForge exists to make that workflow more repeatable and easier to adopt.
+This first slice focuses on two practical workflows:
+
+- `mcpforge init` creates a minimal stdio MCP starter project
+- `mcpforge check` runs a smoke test against a local server and validates the basic MCP handshake
 
 ## Why MCPForge
 
-The goal of MCPForge is simple: make MCP server development feel more like modern application development.
+MCP server development still has a lot of repeated setup work:
 
-That means reducing setup friction, encouraging sensible defaults, and creating a smoother path from first prototype to something a team can actually maintain.
+- creating a starter project structure
+- wiring up a local stdio server loop
+- checking whether the server starts and responds correctly
+- documenting a runnable local workflow for the next contributor
 
-## Current Status
+MCPForge exists to make that first setup and validation loop repeatable.
 
-MCPForge is currently at an early public stage.
+## Install
 
-This repository is being used to define the project direction, document the intended developer experience, and shape the first version of the toolkit. As the implementation grows, this README will evolve from project overview into full setup and usage documentation.
+From the repository root:
 
-## Project Direction
+```bash
+python -m pip install -e .
+```
 
-MCPForge is intended to help with:
+## Usage
 
-- scaffolding new MCP servers faster
-- standardizing common server patterns
-- improving local development and testing workflows
-- reducing one-off setup for tools, resources, and transports
-- making MCP adoption easier for teams building AI tooling
+Create a starter project:
 
-## What I Want This Repo To Become
+```bash
+mcpforge init ./my-server
+```
 
-Over time, MCPForge should grow into a practical toolkit for:
+That command generates:
 
-- bootstrapping new MCP server projects
-- validating server behavior locally
-- providing reusable templates and examples
-- supporting smoother packaging and deployment workflows
-- improving the developer experience around MCP as an ecosystem
+- `server.py` with a minimal stdio MCP server
+- `README.md` with local run instructions
+- `.gitignore` for basic Python artifacts
 
-## Why This Matters
+Run the generated server locally:
 
-If MCP is going to become a durable interface layer for tools and context in AI systems, the surrounding developer workflow needs to become easier to teach, easier to test, and easier to repeat.
+```bash
+cd my-server
+python server.py
+```
 
-MCPForge is my attempt to help build that layer.
+In another terminal, validate the server:
 
-## Roadmap
+```bash
+mcpforge check .
+```
 
-Near-term priorities include:
+Successful output looks like:
 
-- establishing the initial project structure
-- defining the first scaffold and template workflow
-- adding local testing and validation utilities
-- creating example MCP server setups
-- documenting a production-minded developer path
+```text
+PASS: stdio server handshake succeeded.
+Server: starter-mcp-server 0.1.0
+Verified methods: initialize, tools/list, resources/list, prompts/list
+```
 
-## Contributing
+## Current Scope
 
-Contributions, ideas, and feedback are welcome, especially around:
+The current implementation is intentionally small:
 
-- MCP server templates
-- developer workflow pain points
-- local testing patterns
-- deployment and packaging ideas
-- documentation and onboarding improvements
+- one scaffold command
+- one local stdio smoke-test command
+- one minimal project template
+
+That is enough to make the repo usable while keeping the first implementation easy to understand and extend.
+
+## Next Steps
+
+Likely next improvements include:
+
+- richer starter templates
+- configurable server names and metadata
+- deeper MCP protocol validation
+- CI-friendly check output
+- packaging and deployment helpers
 
 ## Project Structure
 
 ```text
 MCPForge/
-└── README.md
+├── .gitignore
+├── README.md
+├── pyproject.toml
+└── mcpforge/
+    ├── __init__.py
+    ├── cli.py
+    └── templates.py
 ```
-
-The repository is intentionally minimal right now while the first implementation direction is being defined.

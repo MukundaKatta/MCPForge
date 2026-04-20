@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mcpforge"
+version = "0.1.0"
+description = "Scaffold and validate simple Model Context Protocol servers."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+  { name = "Mukunda Rao Katta" }
+]
+license = { text = "MIT" }
+dependencies = []
+
+[project.scripts]
+mcpforge = "mcpforge.cli:main"
+
+[tool.setuptools]
+packages = ["mcpforge"]
