@@ -74,6 +74,7 @@ def run_check(path: Path) -> None:
     if process.stdin is None or process.stdout is None or process.stderr is None:
         raise SystemExit("Could not start validation process.")
 
+    check_error: CheckError | None = None
     try:
         send_message(
             process.stdin,
@@ -117,17 +118,20 @@ def run_check(path: Path) -> None:
         print(f"Server: {server_info.get('name', 'unknown')} {server_info.get('version', '')}".strip())
         print("Verified methods: initialize, tools/list, resources/list, prompts/list")
     except CheckError as exc:
-        stderr_output = process.stderr.read().decode("utf-8").strip()
-        print(f"FAIL: {exc}", file=sys.stderr)
-        if stderr_output:
-            print("\nServer stderr:\n" + stderr_output, file=sys.stderr)
-        raise SystemExit(1) from exc
+        check_error = exc
     finally:
         process.terminate()
         try:
             process.wait(timeout=2)
         except subprocess.TimeoutExpired:
             process.kill()
+
+    if check_error is not None:
+        stderr_output = process.stderr.read().decode("utf-8").strip()
+        print(f"FAIL: {check_error}", file=sys.stderr)
+        if stderr_output:
+            print("\nServer stderr:\n" + stderr_output, file=sys.stderr)
+        raise SystemExit(1) from check_error
 
 
 def build_parser() -> argparse.ArgumentParser:
