@@ -37,7 +37,14 @@ def read_message(stream) -> dict[str, Any]:
     if content_length is None:
         raise CheckError("Server response was missing a Content-Length header.")
     body = stream.read(content_length)
-    return json.loads(body.decode("utf-8"))
+    if len(body) < content_length:
+        raise CheckError(
+            "Server closed the stdio stream before sending the full message body."
+        )
+    try:
+        return json.loads(body.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise CheckError(f"Server response was not valid JSON: {exc}") from exc
 
 
 def create_project(path: Path, force: bool) -> None:
@@ -92,7 +99,9 @@ def run_check(path: Path) -> None:
         initialize_response = read_message(process.stdout)
         result = initialize_response.get("result", {})
         if "serverInfo" not in result or "capabilities" not in result:
-            raise CheckError("Initialize response did not include serverInfo and capabilities.")
+            raise CheckError(
+                "Initialize response did not include serverInfo and capabilities."
+            )
 
         send_message(
             process.stdin,
@@ -115,7 +124,9 @@ def run_check(path: Path) -> None:
 
         server_info = result["serverInfo"]
         print("PASS: stdio server handshake succeeded.")
-        print(f"Server: {server_info.get('name', 'unknown')} {server_info.get('version', '')}".strip())
+        print(
+            f"Server: {server_info.get('name', 'unknown')} {server_info.get('version', '')}".strip()
+        )
         print("Verified methods: initialize, tools/list, resources/list, prompts/list")
     except CheckError as exc:
         check_error = exc
@@ -135,14 +146,24 @@ def run_check(path: Path) -> None:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Scaffold and validate MCP server projects.")
+    parser = argparse.ArgumentParser(
+        description="Scaffold and validate MCP server projects."
+    )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    init_parser = subparsers.add_parser("init", help="Create a starter MCP server project.")
+    init_parser = subparsers.add_parser(
+        "init", help="Create a starter MCP server project."
+    )
     init_parser.add_argument("path", help="Directory to create.")
-    init_parser.add_argument("--force", action="store_true", help="Overwrite generated files in a non-empty directory.")
+    init_parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite generated files in a non-empty directory.",
+    )
 
-    check_parser = subparsers.add_parser("check", help="Run a local stdio smoke check against a server.")
+    check_parser = subparsers.add_parser(
+        "check", help="Run a local stdio smoke check against a server."
+    )
     check_parser.add_argument("path", help="Project directory or server.py path.")
 
     return parser

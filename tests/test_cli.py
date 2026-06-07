@@ -2,12 +2,18 @@
 
 from __future__ import annotations
 
-import sys
+import io
 from pathlib import Path
 
 import pytest
 
-from mcpforge.cli import CheckError, build_parser, create_project, run_check
+from mcpforge.cli import (
+    CheckError,
+    build_parser,
+    create_project,
+    read_message,
+    run_check,
+)
 
 
 def test_create_project_generates_files(tmp_path: Path) -> None:
@@ -47,6 +53,26 @@ def test_run_check_accepts_server_py_path(tmp_path: Path) -> None:
 def test_run_check_missing_server_exits(tmp_path: Path) -> None:
     with pytest.raises(SystemExit):
         run_check(tmp_path / "nonexistent")
+
+
+def test_read_message_rejects_invalid_json() -> None:
+    body = b'{"jsonrpc":'  # truncated / invalid JSON
+    stream = io.BytesIO(b"Content-Length: %d\r\n\r\n%s" % (len(body), body))
+    with pytest.raises(CheckError, match="not valid JSON"):
+        read_message(stream)
+
+
+def test_read_message_rejects_truncated_body() -> None:
+    # Header claims 100 bytes but only a few are present before EOF.
+    stream = io.BytesIO(b"Content-Length: 100\r\n\r\nshort")
+    with pytest.raises(CheckError, match="before sending the full message body"):
+        read_message(stream)
+
+
+def test_read_message_rejects_missing_content_length() -> None:
+    stream = io.BytesIO(b"X-Other: 1\r\n\r\n{}")
+    with pytest.raises(CheckError, match="missing a Content-Length header"):
+        read_message(stream)
 
 
 def test_build_parser_init_subcommand() -> None:
